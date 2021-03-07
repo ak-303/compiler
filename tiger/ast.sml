@@ -55,7 +55,7 @@ struct
     and   decs   = Decs of dec list
 
     and   dec    = (* Type declaration *)
-                   TypeDec of (id * ty) list
+                   TypeDec of (type_id * ty) list
                    
                    (* Class definition - only supports alternative form -- SEE EPITA *)
                 |  ClassDec of {class_id: id, class_extends: type_id option, class_fields: classfields}
@@ -82,6 +82,8 @@ struct
                 |  Record_ty of tyfields
                    (* Array type definition *)
                 |  Array_ty of type_id 
+                   (*Class Canonical definition *)
+                |  Class_ty of {class_extends: type_id option, class_fields: classfields}
 
     and tyfields = Tyfield of tyfields list
     and BinOp    = Plus | Minus | Mul | Div | Eq | NotEq | GT | LT | GTEq | LTEq | And | Or 
