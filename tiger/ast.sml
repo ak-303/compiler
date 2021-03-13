@@ -3,9 +3,9 @@ struct
     
     type id = string
     type type_id = id
-    type tyfields = id * type_id
+    type tyfield = id * type_id
 
-    datatype program = exp | decs 
+    datatype program = exp  
 
     datatype exp = (* Literals *)
                    NilExp
@@ -39,7 +39,7 @@ struct
                 |  WhileExp of {while_: exp, do_: exp}
                 |  ForExp of {var: id, from: exp, to_: exp, do_: exp}
                 |  BreakExp
-                |  LetExp of {declarations: decs, in_: exp}
+                |  LetExp of {declarations: dec list, in_: exp}
 
     (* and   exps   = Exps of exp list option *)
 
@@ -52,13 +52,11 @@ struct
                    (* To access an element of an array *)
                 |  Lvalue_array of lvalue * exp
 
-    and   decs   = Decs of dec list
-
     and   dec    = (* Type declaration *)
                    TypeDec of (type_id * ty) list
                    
                    (* Class definition - only supports alternative form -- SEE EPITA *)
-                |  ClassDec of {class_id: id, class_extends: type_id option, class_fields: classfields}
+                |  ClassDec of {class_id: id, class_extends: type_id option, class_fields: classfield list}
 
                    (* Variable declaration *)
                 |  VarDec of {var_id: id, var_type: type_id option, value: exp}
@@ -69,12 +67,12 @@ struct
                    (* Primitive definition *)
                 |  PrimDec of {primitiveid: id, primitive_args: tyfields, return_type: type_id option}
 
- and classfields = Classfields of classfield list
+ (* and classfields = Classfields of classfield list *)
 
  and classfield  = (* Attributes of class *)
                    ClassVarDec of {class_var_id: id, class_var_type: type_id option, value: exp}
                    (* Methods of class*)
-                |  Method of {method_id: id, method_args: tyfields, return_type: type_id option, method_body: exp}
+                |  Method of {method_id: id, method_args: tyfields, return_type: type_id option, method_body: exp} list
 
     and     ty   = (* type alias *)
                    Type_id of type_id
@@ -83,9 +81,9 @@ struct
                    (* Array type definition *)
                 |  Array_ty of type_id 
                    (*Class Canonical definition *)
-                |  Class_ty of {class_extends: type_id option, class_fields: classfields}
+                |  Class_ty of {class_extends: type_id option, class_fields: classfield list}
 
-    and tyfields = Tyfield of tyfields list
+    and tyfields = Tyfield of tyfield list
     and BinOp    = Plus | Minus | Mul | Div | Eq | NotEq | GT | LT | GTEq | LTEq | And | Or 
     
     
