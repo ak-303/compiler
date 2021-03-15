@@ -5,15 +5,15 @@ struct
     type type_id = id
     type tyfield = id * type_id
 
-    datatype program = exp  
-
-    datatype exp = (* Literals *)
+    datatype program = Program of exp  
+    and 
+         exp = (* Literals *)
                    NilExp
                 |  IntExp of int 
                 |  StringExp of string 
 
                    (* Arrays and Records *)
-                |  ArrayExp of {array: type_id list, initial_val: exp, length: exp}
+                |  ArrayExp of {array_type: type_id, initial_val: exp, length: exp}
                 |  RecordExp of {field: (id * exp) list, record_type: type_id}                                                            (* DOUBT *)
 
                    (* Creation of object *)

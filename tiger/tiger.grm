@@ -30,9 +30,9 @@
         | recordfields of (Ast.id * Ast.exp) list 
         | callarguments of Ast.exp list
         | tydec         of (Ast.type_id * Ast.ty) list
-        | fundec of {function_id: Ast.ID, function_args: Ast.tyfields, return_type: Ast.type_id option, function_body: Ast.exp} list
+        | fundec of {function_id: Ast.id, function_args: Ast.tyfields, return_type: Ast.type_id option, function_body: Ast.exp} list
         | tyfield      of (Ast.id * Ast.type_id) list
-        | methoddec of {method_id: Ast.ID, mrthod_args: Ast.tyfields, return_type: Ast.type_id option, method_body: Ast.exp} list
+        | methoddec of {method_id: Ast.id, method_args: Ast.tyfields, return_type: Ast.type_id option, method_body: Ast.exp} list
         | exps_helper   of Ast.exp list
         | decs_helper   of Ast.dec list
         | tyfield_helper of (Ast.id * Ast.type_id) list
@@ -70,7 +70,7 @@
 %%
 (************ ML-Yacc rules **************)
 
-program: exp               (exp)
+program: exp               (Ast.Program exp)
 
 exps:  exp                            ([exp])
     |  exp exps_helper                  (exp :: exps_helper)
@@ -91,12 +91,12 @@ exp: NIL                    (Ast.NilExp )
   (* ID, TYPE-ID not sure *)
   
   (* Create array and record expressions *)
-  |  ID LEFT_BRACKET exp RIGHT_BRACKET OF exp    ( Ast.ArrayExp({array: ID list, 
-                                                                     initial_val: exp2,
-                                                                     size: exp1}) )  
+  |  ID LEFT_BRACKET exp RIGHT_BRACKET OF exp    ( Ast.ArrayExp({array_type= ID, 
+                                                                     initial_val= exp2,
+                                                                     length= exp1}) )  
 
-  |  ID LEFT_CURLY recordfields RIGHT_CURLY      ( Ast.RecordExp({field: recordfields,
-                                                                       record_type: ID}) )
+  |  ID LEFT_CURLY recordfields RIGHT_CURLY      ( Ast.RecordExp({field= recordfields,
+                                                                       record_type= ID}) )
   
   (* new object creation *)
   |  NEW ID                                      ( Ast.ObjectExp ID) 
@@ -105,12 +105,12 @@ exp: NIL                    (Ast.NilExp )
   |  lvalue                                           ( Ast.LvalueExp lvalue)
 
   (* Calling function or method *)
-  |  ID LEFT_PAREN callarguments RIGHT_PAREN          ( Ast.FunCallExp({function_id: ID,
-                                                                        function_args: callarguments}) )
+  |  ID LEFT_PAREN callarguments RIGHT_PAREN          ( Ast.FunCallExp({function_id= ID,
+                                                                        function_args= callarguments}) )
 
-  |  lvalue DOT ID LEFT_PAREN callarguments RIGHT_PAREN   ( Ast.MethodCallExp({caller: lvalue,
-                                                                               method_id: ID 
-                                                                               method_args: callarguments}) )
+  |  lvalue DOT ID LEFT_PAREN callarguments RIGHT_PAREN   ( Ast.MethodCallExp({caller= lvalue,
+                                                                               method_id= ID, 
+                                                                               method_args= callarguments}) )
   (* Assignment expression *)
   |  lvalue ASSIGN exp                                ( Ast.AssignExp(lvalue, exp) )
  
@@ -119,19 +119,19 @@ exp: NIL                    (Ast.NilExp )
 
 
   (* If, While, For and Let expressions *)
-  |  IF exp THEN exp ELSE exp         ( Ast.IfExp({if_: exp1, then_: exp2, else_: SOME(exp3)}) )  
-  |  IF exp THEN exp                          ( Ast.IfExp({if_: exp1, then_: exp2, else_: NONE}) )
+  |  IF exp THEN exp ELSE exp         ( Ast.IfExp({if_= exp1, then_= exp2, else_= SOME(exp3)}) )  
+  |  IF exp THEN exp                          ( Ast.IfExp({if_= exp1, then_= exp2, else_= NONE}) )
 
-  |  WHILE exp DO exp                         ( Ast.WhileExp({while_: exp1, do_: exp2}) )
+  |  WHILE exp DO exp                         ( Ast.WhileExp({while_= exp1, do_= exp2}) )
  
-  |  FOR ID ASSIGN exp TO exp DO exp          ( Ast.ForExp({var: ID, from: exp1, to_: exp2, do_: exp3}) )
+  |  FOR ID ASSIGN exp TO exp DO exp          ( Ast.ForExp({var= ID, from= exp1, to_= exp2, do_= exp3}) )
 
   |  BREAK                                            ( Ast.BreakExp)
   
-  |  LET decs IN exps END             ( Ast.LetExp({declarations: decs, in_: exps}))
+  |  LET decs IN exps END             ( Ast.LetExp({declarations= decs, in_= Ast.SequenceExp exps}))
 
   (* Operators and unary minus *)
-  |  EXP_MINUS exp                                    ( Ast.NegationExp exp)
+  |  MINUS exp %prec EXP_MINUS                        ( Ast.NegationExp exp)
   |  exp PLUS exp                                     ( Ast.OpExp( exp1, Ast.Plus, exp2) ) 
   |  exp MINUS exp                                    ( Ast.OpExp( exp1, Ast.Minus, exp2) )
   |  exp MUL exp                                      ( Ast.OpExp( exp1, Ast.Mul, exp2) )
@@ -161,71 +161,70 @@ callarguments_helper:                                  ([])
 
 lvalue: ID                                             ( Ast.Lvalue_id ID )
   |     lvalue DOT ID                                  ( Ast.Lvalue_field (lvalue, ID) )
-  |     ID LEFT_BRACKET exp RIGHT_BRACKET              ( Ast.Lvalue_array(A.Lvalue_id ID, exp))      
+  |     ID LEFT_BRACKET exp RIGHT_BRACKET              ( Ast.Lvalue_array(Ast.Lvalue_id ID, exp))      
   |     lvalue LEFT_BRACKET exp RIGHT_BRACKET          ( Ast.Lvalue_array (lvalue, exp) )
 
 dec: tydec                                                          ( Ast.TypeDec(tydec) )
 
-  |  CLASS ID LEFT_CURLY  classfields RIGHT_CURLY                     ( Ast.ClassDec({class_id: ID,
-                                                                                              class_extends: NONE, 
-                                                                                              class_fields: classfields}) )
-  |  CLASS ID EXTENDS ID LEFT_CURLY classfields RIGHT_CURLY     ( Ast.ClassDec({class_id: ID1,
-                                                                                              class_extends: SOME(ID2), 
-                                                                                              class_fields: classfields}) )
+  |  CLASS ID LEFT_CURLY  classfields RIGHT_CURLY                     ( Ast.ClassDec({class_id= ID,
+                                                                                              class_extends= NONE, 
+                                                                                              class_fields= classfields}) )
+  |  CLASS ID EXTENDS ID LEFT_CURLY classfields RIGHT_CURLY     ( Ast.ClassDec({class_id= ID1,
+                                                                                              class_extends= SOME(ID2), 
+                                                                                              class_fields= classfields}) )
 
-  |  VAR ID ASSIGN exp                                              ( Ast.VarDec({var_id: ID,
-                                                                                  var_type: NONE,
-                                                                                  value: exp}) )
-  |  VAR ID COLON ID ASSIGN exp                                ( Ast.VarDec({var_id: ID1,
-                                                                                  var_type: SOME(ID2),
-                                                                                  value: exp}) )
+  |  VAR ID ASSIGN exp                                              ( Ast.VarDec({var_id= ID,
+                                                                                  var_type= NONE,
+                                                                                  value= exp}) )
+  |  VAR ID COLON ID ASSIGN exp                                ( Ast.VarDec({var_id= ID1,
+                                                                                  var_type= SOME(ID2),
+                                                                                  value= exp}) )
 
   |  fundec                                                         ( Ast.FunDec(fundec) )
 
-  |  PRIMITIVE ID LEFT_PAREN tyfields RIGHT_PAREN                   ( Ast.PrimDec({primitiveid: ID
-                                                                                   primitive_args: tyfields,
-                                                                                   return_type: NONE }))
-  |  PRIMITIVE ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID     ( Ast.PrimDec({primitiveid: ID1
-                                                                                   primitive_args: tyfields,
-                                                                                   return_type: SOME(ID2) }))
+  |  PRIMITIVE ID LEFT_PAREN tyfields RIGHT_PAREN                   ( Ast.PrimDec({primitiveid= ID,
+                                                                                   primitive_args= tyfields,
+                                                                                   return_type= NONE }))
+  |  PRIMITIVE ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID     ( Ast.PrimDec({primitiveid= ID1,
+                                                                                   primitive_args= tyfields,
+                                                                                   return_type= SOME(ID2) }))
 
 
-tydec: TYPE ID EQUAL ty                   ( [ID, ty] )
+tydec: TYPE ID EQUAL ty                   ( [(ID, ty)] )
   |    TYPE ID EQUAL ty tydec             ( (ID, ty)::tydec )  
 
-fundec: FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp                ([{function_id: ID, function_args: tyfields, return_type: NONE, function_body: exp}])
-  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp  ([{function_id: ID1, function_args: tyfields, return_type: SOME(ID2), function_body: exp}])
-  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp fundec ({function_id: ID1, function_args: tyfields, return_type: SOME(ID2), function_body: exp} :: fundec)
-  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp fundec ({function_id: ID, function_args: tyfields, return_type: NONE, function_body: exp} :: fundec)
+fundec: FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp                ([{function_id= ID, function_args= tyfields, return_type= NONE, function_body= exp}])
+  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp  ([{function_id= ID1, function_args= tyfields, return_type= SOME(ID2), function_body= exp}])
+  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp fundec ({function_id= ID1, function_args= tyfields, return_type= SOME(ID2), function_body= exp} :: fundec)
+  |     FUNCTION ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp fundec ({function_id= ID, function_args= tyfields, return_type= NONE, function_body= exp} :: fundec)
 
 classfields:                                            ( [] )
         |   classfield classfields              (classfield :: classfields)
 
-classfield: VAR ID ASSIGN exp                                       ( Ast.ClassVarDec({class_var_id: ID,
-                                                                                       class_var_type: NONE,
-                                                                                       value: exp}) )
-  |  VAR ID COLON ID ASSIGN exp                                ( Ast.ClassVarDec({class_var_id: ID1,
-                                                                                       class_var_type: SOME(ID2),
-                                                                                       value: exp}) )
+classfield: VAR ID ASSIGN exp                                       ( Ast.ClassVarDec({class_var_id= ID,
+                                                                                       class_var_type= NONE,
+                                                                                       value= exp}) )
+  |  VAR ID COLON ID ASSIGN exp                                ( Ast.ClassVarDec({class_var_id= ID1,
+                                                                                       class_var_type= SOME(ID2),
+                                                                                       value= exp}) )
   |  methoddec                                                      ( Ast.Method (methoddec))
 
-methoddec: METHOD ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp                     ([{method_id: ID, method_args: tyfields, return_type: NONE, method_body: exp}])
-  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp          ([{method_id: ID1, method_args: tyfields, return_type: SOME(ID2), method_body: exp}])
-  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp methoddec         ({method_id: ID1, method_args: tyfields, return_type: SOME(ID2), method_body: exp} :: methoddec)
-  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp methoddec                       ({method_id: ID, method_args: tyfields, return_type: NONE, method_body: exp} :: methoddec)
+methoddec: METHOD ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp                     ([{method_id= ID, method_args= tyfields, return_type= NONE, method_body= exp}])
+  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp          ([{method_id= ID1, method_args= tyfields, return_type= SOME(ID2), method_body= exp}])
+  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN COLON ID EQUAL exp methoddec         ({method_id= ID1, method_args= tyfields, return_type= SOME(ID2), method_body= exp} :: methoddec)
+  |     METHOD ID LEFT_PAREN tyfields RIGHT_PAREN EQUAL exp methoddec                       ({method_id= ID, method_args= tyfields, return_type= NONE, method_body= exp} :: methoddec)
   
 ty: ID                         (Ast.Type_id ID)
  |  LEFT_CURLY tyfields RIGHT_CURLY (Ast.Record_ty tyfields)
  |  ARRAY OF ID                (Ast.Array_ty ID)
- |  CLASS LEFT_CURLY classfields RIGHT_CURLY (Ast.Class_ty({class_extends: NONE, class_fields: classfields}))
- |  CLASS EXTENDS ID LEFT_CURLY  classfields RIGHT_CURLY   (Ast.Class_ty({class_extends: SOME(ID), class_fields: classfields}))
+ |  CLASS LEFT_CURLY classfields RIGHT_CURLY (Ast.Class_ty({class_extends= NONE, class_fields= classfields}))
+ |  CLASS EXTENDS ID LEFT_CURLY classfields RIGHT_CURLY   (Ast.Class_ty({class_extends= SOME(ID), class_fields= classfields}))
 
-tyfields: tyfield                    (Ast.Tyfield tyfield)
 
-tyfield:                                  ([])
- |     ID COLON ID tyfield_helper    ((ID1 * ID2) :: tyfield_helper)
 
 tyfield_helper:                                ([])
- |     COMMA ID COLON ID tyfield_helper   ((ID1 * ID2) :: tyfield_helper)
+ |     COMMA ID COLON ID tyfield_helper   ((ID1, ID2) :: tyfield_helper)
 
+tyfields:                             (Ast.Tyfield([]) )
+ |     ID COLON ID tyfield_helper     (Ast.Tyfield((ID1, ID2) :: tyfield_helper) )
 
