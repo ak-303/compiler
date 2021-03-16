@@ -46,21 +46,24 @@
 %noshift EOF
 
 
-%nonassoc ID
+
 %nonassoc ASSIGN
-%left METHOD FUNCTION
-%left TYPE
 %left OR
 %left AND 
 %nonassoc GT GTE LT LTE NOT_EQUAL EQUAL
 %left PLUS MINUS
 %left MUL DIV 
+%left LEFT_PAREN RIGHT_PAREN
 %right EXP_MINUS
-%nonassoc LEFT_PAREN RIGHT_PAREN LEFT_BRACKET RIGHT_BRACKET LEFT_CURLY RIGHT_CURLY
+%nonassoc ID
+%left  LEFT_BRACKET RIGHT_BRACKET LEFT_CURLY RIGHT_CURLY
 %nonassoc THEN
 %nonassoc ELSE
 %nonassoc DO
 %nonassoc OF
+%nonassoc TYPE
+%nonassoc METHOD FUNCTION
+
 
 %pos int
 

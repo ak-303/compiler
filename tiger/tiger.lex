@@ -8,10 +8,16 @@ val  eolpos  : int ref = ref 0;
 val comment_level      = ref 0;
 val  temp_string       = ref "";
 val inside_string      = ref 0;  
-
+(* (temp_string := !temp_string ^ asciiCode(yytext); continue()); *)
 type svalue        = T.svalue
 type ('a,'b) token = ('a,'b) T.token
 type lexresult     = (svalue,pos) token
+
+fun asciiCode str =
+    let val subStr = String.substring(str, 1, 3)
+        val intVal = valOf(Int.fromString(subStr))
+        val charVal = chr intVal
+    in Char.toString charVal end
 
 fun updateLine n   = lineRef := !(lineRef) + n
 
@@ -113,11 +119,19 @@ digit = [0-9];
 <STRING>\\r                        => (temp_string := !temp_string ^ "\r"; continue());
 <STRING>\\v                        => (temp_string := !temp_string ^ "\v"; continue());
 <STRING>\\t                        => (temp_string := !temp_string ^ "\t"; continue());
-<STRING>\\\\                       => (temp_string := !temp_string ^ "\t"; continue());
+<STRING>\\\\                       => (temp_string := !temp_string ^ "\\"; continue());
 <STRING>\\\"                       => (temp_string := !temp_string ^ "\""; continue());
 <STRING>[^\\"\n]                   => (temp_string := !temp_string ^ yytext; continue());
-<STRING>\"                         => (YYBEGIN INITIAL; T.STRINGEXP (!temp_string, !lineRef, !colRef); inside_string := 0; continue());
-
+<STRING>\"                         => (YYBEGIN INITIAL; inside_string := 0; T.STRINGEXP (!temp_string, !lineRef, !colRef));
+<STRING>\\[ \t\n\f]+\\	           => (continue());
+<STRING>\\[0-9][0-9][0-9]          => (let val x = valOf(Int.fromString(String.substring(yytext, 1, 3)))
+                                       in if x > 255 then (error("ASCII Code can't be greater than 255.", !lineRef, !colRef); continue())
+                                          else (temp_string := !temp_string ^ (Char.toString (Char.chr x));continue()) 
+                                       end  
+                                       );
+                                       
+                                       
+<STRING>.                          => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
 
 
 <INITIAL>.                         => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
