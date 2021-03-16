@@ -19,9 +19,9 @@ fun lineRange l r  = "line [" ^ Int.toString l ^ " - " ^ Int.toString r ^ "]"
 
 fun error (e,l,r)  = TextIO.output(TextIO.stdErr, lineRange l r ^ " : " ^ e ^ "\n")
 
-fun eof   ()       = if !comment_level <> 0 then error("Comments are not closed", !lineRef, !colRef)
-                     else if !inside_string = 1 then error("String expression not closed", !lineRef, !colRef)
-                     else T.EOF (!lineRef,!colRef)
+fun eof   ()       = if !comment_level <> 0 then (error("Comments are not closed", !lineRef, !colRef); lineRef := 1; colRef:= 1; T.EOF (!lineRef,!colRef))
+                     else if !inside_string = 1 then (error("String expression not closed", !lineRef, !colRef); lineRef := 1; colRef:= 1; T.EOF (!lineRef,!colRef))
+                     else (lineRef := 1; colRef:= 1; T.EOF (!lineRef,!colRef))
 
 
 
@@ -84,7 +84,7 @@ digit = [0-9];
 <INITIAL>"&"                       => (colRef := yypos-(!eolpos); T.AND(!lineRef, !colRef));
 
 
-<INITIAL>{string_regexp}+ 	       => (colRef := yypos-(!eolpos); T.ID(yytext, !lineRef, !colRef));
+<INITIAL>[a-zA-Z][a-zA-Z0-9_]*	       => (colRef := yypos-(!eolpos); T.ID(yytext, !lineRef, !colRef));
 
 
 <INITIAL>{digit}+ 	               => (colRef := yypos-(!eolpos); T.INTEXP(valOf(Int.fromString yytext), !lineRef, !colRef));
@@ -93,8 +93,8 @@ digit = [0-9];
 <INITIAL>[\ \t]+                   => (continue());
 
 
-<INITIAL>"/*"                      => (YYBEGIN COMMENT; !comment_level = 1; continue());
-<INITIAL>"*/"                      => (colRef := yypos-(!eolpos); error("Can't close unopened comment", !lineRef, !colRef));
+<INITIAL>"/*"                      => (YYBEGIN COMMENT; comment_level := 1; continue());
+<INITIAL>"*/"                      => (colRef := yypos-(!eolpos); error("Can't close unopened comment", !lineRef, !colRef); continue());
 <COMMENT>"*/"                      => (comment_level := !comment_level-1; 
                                         if !comment_level = 0 then (YYBEGIN INITIAL; continue())
                                         else continue());
@@ -104,19 +104,19 @@ digit = [0-9];
 <COMMENT>.                         => (continue());
 
 
-<INITIAL>"\""                      => (YYBEGIN STRING; colRef := yypos-(!eolpos); inside_string := 1; temp_string = ""; continue());
+<INITIAL>\"                        => (YYBEGIN STRING; colRef := yypos-(!eolpos); inside_string := 1; !temp_string = ""; continue());
 <STRING>\n                         => (error("String should be written in one line", !lineRef, !colRef); continue());
-<STRING>\\n                        => (temp_string := temp_string ^ "\n"; continue());
-<STRING>\\a                        => (temp_string := temp_string ^ "\a"; continue());
-<STRING>\\b                        => (temp_string := temp_string ^ "\b"; continue());
-<STRING>\\f                        => (temp_string := temp_string ^ "\f"; continue());
-<STRING>\\r                        => (temp_string := temp_string ^ "\r"; continue());
-<STRING>\\v                        => (temp_string := temp_string ^ "\v"; continue());
-<STRING>\\t                        => (temp_string := temp_string ^ "\t"; continue());
-<STRING>\\\\                       => (temp_string := temp_string ^ "\t"; continue());
-<STRING>\\\"                       => (temp_string := temp_string ^ "\""; continue());
-<STRING>[^\\"\n]                   => (temp_string := temp_string ^ yytext; continue());
-<STRING>\"                         => (YYBEGIN INITIAL; T.STRINGEXP temp_string; inside_string := 0; continue());
+<STRING>\\n                        => (temp_string := !temp_string ^ "\n"; continue());
+<STRING>\\a                        => (temp_string := !temp_string ^ "\a"; continue());
+<STRING>\\b                        => (temp_string := !temp_string ^ "\b"; continue());
+<STRING>\\f                        => (temp_string := !temp_string ^ "\f"; continue());
+<STRING>\\r                        => (temp_string := !temp_string ^ "\r"; continue());
+<STRING>\\v                        => (temp_string := !temp_string ^ "\v"; continue());
+<STRING>\\t                        => (temp_string := !temp_string ^ "\t"; continue());
+<STRING>\\\\                       => (temp_string := !temp_string ^ "\t"; continue());
+<STRING>\\\"                       => (temp_string := !temp_string ^ "\""; continue());
+<STRING>[^\\"\n]                   => (temp_string := !temp_string ^ yytext; continue());
+<STRING>\"                         => (YYBEGIN INITIAL; T.STRINGEXP (!temp_string, !lineRef, !colRef); inside_string := 0; continue());
 
 
 

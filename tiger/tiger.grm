@@ -72,10 +72,10 @@
 
 program: exp               (Ast.Program exp)
 
-exps:  exp                            ([exp])
+exps:                                   ([])
     |  exp exps_helper                  (exp :: exps_helper)
 
-exps_helper: SEMICOLON exp              ([exp])
+exps_helper:                            ([])
     |   SEMICOLON exp exps_helper       (exp :: exps_helper)
     
 
