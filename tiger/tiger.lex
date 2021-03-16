@@ -8,16 +8,11 @@ val  eolpos  : int ref = ref 0;
 val comment_level      = ref 0;
 val  temp_string       = ref "";
 val inside_string      = ref 0;  
-(* (temp_string := !temp_string ^ asciiCode(yytext); continue()); *)
+
 type svalue        = T.svalue
 type ('a,'b) token = ('a,'b) T.token
 type lexresult     = (svalue,pos) token
 
-fun asciiCode str =
-    let val subStr = String.substring(str, 1, 3)
-        val intVal = valOf(Int.fromString(subStr))
-        val charVal = chr intVal
-    in Char.toString charVal end
 
 fun updateLine n   = lineRef := !(lineRef) + n
 
@@ -30,8 +25,6 @@ fun eof   ()       = if !comment_level <> 0 then (error("Comments are not closed
                      else (lineRef := 1; colRef:= 1; T.EOF (!lineRef,!colRef))
 
 
-
-val newlineCount = List.length o List.filter (fn x => x = #"\n") o String.explode
 
 %%
 
