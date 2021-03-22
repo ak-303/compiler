@@ -46,8 +46,10 @@
 %noshift EOF
 
 
-
-%nonassoc ASSIGN
+%nonassoc OF
+%nonassoc ASSIGN DO
+%nonassoc THEN
+%nonassoc ELSE
 %left OR
 %left AND 
 %nonassoc GT GTE LT LTE NOT_EQUAL EQUAL
@@ -57,10 +59,10 @@
 %right EXP_MINUS
 %nonassoc ID
 %left  LEFT_BRACKET RIGHT_BRACKET LEFT_CURLY RIGHT_CURLY
-%nonassoc THEN
-%nonassoc ELSE
-%nonassoc DO
-%nonassoc OF
+(* %nonassoc THEN
+%nonassoc ELSE *)
+(* %nonassoc DO 
+%nonassoc OF *)
 %nonassoc TYPE
 %nonassoc METHOD FUNCTION
 

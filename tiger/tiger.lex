@@ -83,12 +83,12 @@ digit = [0-9];
 <INITIAL>"&"                       => (colRef := yypos-(!eolpos); T.AND(!lineRef, !colRef));
 
 
-<INITIAL>[a-zA-Z][a-zA-Z0-9_]*	       => (colRef := yypos-(!eolpos); T.ID(yytext, !lineRef, !colRef));
+<INITIAL>[a-zA-Z][a-zA-Z0-9_]*	  => (colRef := yypos-(!eolpos); T.ID(yytext, !lineRef, !colRef));
 
 
-<INITIAL>{digit}+ 	               => (colRef := yypos-(!eolpos); T.INTEXP(valOf(Int.fromString yytext), !lineRef, !colRef));
+<INITIAL>{digit}+ 	              => (colRef := yypos-(!eolpos); T.INTEXP(valOf(Int.fromString yytext), !lineRef, !colRef));
 
-<INITIAL>\n              	       => (updateLine 1; eolpos:=yypos + size yytext; continue());
+<INITIAL>\n              	        => (updateLine 1; eolpos:=yypos + size yytext; continue());
 <INITIAL>[\ \t]+                   => (continue());
 
 
@@ -115,15 +115,7 @@ digit = [0-9];
 <STRING>\\\\                       => (temp_string := !temp_string ^ "\\"; continue());
 <STRING>\\\"                       => (temp_string := !temp_string ^ "\""; continue());
 <STRING>[^\\"\n]                   => (temp_string := !temp_string ^ yytext; continue());
-<STRING>\"                         => (YYBEGIN INITIAL; inside_string := 0; T.STRINGEXP (!temp_string, !lineRef, !colRef));
-<STRING>\\[ \t\n\f]+\\	           => (continue());
-<STRING>\\[0-9][0-9][0-9]          => (let val x = valOf(Int.fromString(String.substring(yytext, 1, 3)))
-                                       in if x > 255 then (error("ASCII Code can't be greater than 255.", !lineRef, !colRef); continue())
-                                          else (temp_string := !temp_string ^ (Char.toString (Char.chr x));continue()) 
-                                       end  
-                                       );
-                                       
-                                       
+<STRING>\"                         => (YYBEGIN INITIAL; inside_string := 0; T.STRINGEXP (!temp_string, !lineRef, !colRef));                                       
 <STRING>.                          => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
 
 
