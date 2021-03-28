@@ -6,4 +6,5 @@ tiger.grm.sig    (* The signature file generated for the grammar *)
 tiger.grm.sml    (* The parser                                   *)
 tiger.lex.sml    (* The lexer for the machine                    *)
 printast.sml
+../target/pp.sml
 tc.sml

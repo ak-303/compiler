@@ -1,6 +1,6 @@
 
 
-COMMON=ast.sml 
+COMMON=ast.sml ../target/pp.sml
 
 
 

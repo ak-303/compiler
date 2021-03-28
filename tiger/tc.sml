@@ -58,5 +58,6 @@ fun print_error (s,i:int,c:int) = TextIO.output(TextIO.stdErr,
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
 
 val temp = PrintAst.print(TextIO.stdOut, program)
-
+val temp = PP.compile(program)
+val _ = TextIO.output(TextIO.stdOut, temp)
 end

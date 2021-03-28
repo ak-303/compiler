@@ -103,7 +103,7 @@ digit = [0-9];
 <COMMENT>.                         => (continue());
 
 
-<INITIAL>\"                        => (YYBEGIN STRING; colRef := yypos-(!eolpos); inside_string := 1; !temp_string = ""; continue());
+<INITIAL>\"                        => (YYBEGIN STRING; colRef := yypos-(!eolpos); inside_string := 1; temp_string := ""; continue());
 <STRING>\n                         => (error("String should be written in one line", !lineRef, !colRef); continue());
 <STRING>\\n                        => (temp_string := !temp_string ^ "\n"; continue());
 <STRING>\\a                        => (temp_string := !temp_string ^ "\a"; continue());
@@ -115,9 +115,10 @@ digit = [0-9];
 <STRING>\\\\                       => (temp_string := !temp_string ^ "\\"; continue());
 <STRING>\\\"                       => (temp_string := !temp_string ^ "\""; continue());
 <STRING>[^\\"\n]                   => (temp_string := !temp_string ^ yytext; continue());
-<STRING>\"                         => (YYBEGIN INITIAL; inside_string := 0; T.STRINGEXP (!temp_string, !lineRef, !colRef));                                       
-<STRING>.                          => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
+<STRING>\"                         => (YYBEGIN INITIAL; inside_string := 0; T.STRINGEXP (!temp_string, !lineRef, !colRef));
 
+
+<STRING>.                          => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
 
 <INITIAL>.                         => (error("Unexpected/Illegal character", !lineRef, !colRef); continue());
 
