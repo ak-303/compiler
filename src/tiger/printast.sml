@@ -44,7 +44,7 @@ fun print (outstream, e0) =
 
     | exp(A.IntExp i, d) = (indent d; say "IntExp("; say(Int.toString i); say ")")
 
-    | exp(A.StringExp(s),d) = (indent d; say "StringExp(\""; say s; say "\")")
+    | exp(A.StringExp(s),d) = (indent d; say "StringExp(\""; say(concat(map Char.toString (explode s))); say "\")")
 
     | exp(A.FunCallExp{function_id, function_args},d) = (indent d; say "FunCallExp("; say(function_id);
 			                                            say ",["; dolist d exp function_args; say "])")

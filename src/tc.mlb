@@ -1,0 +1,10 @@
+$(SML_LIB)/basis/basis.mlb
+$(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+
+tiger/ast.sml         (* the syntax                                   *)
+tiger/tiger.grm.sig    (* The signature file generated for the grammar *)
+tiger/tiger.grm.sml    (* The parser                                   *)
+tiger/tiger.lex.sml    (* The lexer for the machine                    *)
+tiger/printast.sml
+target/pp.sml
+tiger/tc.sml
