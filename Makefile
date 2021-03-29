@@ -28,6 +28,6 @@ mips: ./src/target/mips.sml
 	mlton src/target/mips.sml
 
 test: all
-	./tc src/test/test1.tig 
-	./tc src/test/test2.tig 
-	./tc src/test/test3.tig
+	./tc src/test/test1.tig pp
+	./tc src/test/test2.tig pp
+	./tc src/test/test3.tig pp
