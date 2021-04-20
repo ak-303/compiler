@@ -11,3 +11,5 @@ Week 4 : grm and lex files for tiger added. Now AST can be generated.
 Week 5 : Added print option for the AST of tiger. Read README to see how to print.
 
 Week 6 : Added pretty printer. 
+
+Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated.

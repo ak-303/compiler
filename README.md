@@ -8,13 +8,13 @@ make test : there are three test files (test1.tig (queens code from Appel), test
             (classes from epita), test3.tig (merge code from Appel)). It pretty prints all the codes. 
 
 TO PRETTY PRINT : argument is pp
-                  eg: ./tc src/test/test1.tig pp
+                  eg: ./tc test/test1.tig pp
 
 To PRINT AST : argument is ast
-               eg: ./tc src/test/test1.tig ast
+               eg: ./tc test/test1.tig ast
 
 By Default: prints both : print ast first then pretty print
-                          eg: ./tc src/test/test1.tig
+                          eg: ./tc test/test1.tig
 
 
 

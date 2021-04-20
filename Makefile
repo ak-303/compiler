@@ -1,6 +1,6 @@
 
 
-COMMON=./src/tiger/ast.sml ./src/target/pp.sml ./src/target/mips.sml
+COMMON=./tiger/ast.sml ./target/pp.sml ./target/mips.sml
 
 
 
@@ -18,16 +18,16 @@ all: tc mips
 .PHONY: all clean test
 
 clean:
-	rm -f ./src/tiger/*.grm.sml ./src/tiger/*.grm.desc ./src/tiger/*.grm.sig tc ./src/tiger/*.lex.sml ./src/target/mips 
+	rm -f ./tiger/*.grm.sml ./tiger/*.grm.desc ./tiger/*.grm.sig tc ./tiger/*.lex.sml ./target/mips 
 
-tc: ./src/tiger/tc.sml ./src/tc.mlb ./src/tiger/tiger.grm.sml ./src/tiger/tiger.lex.sml ./src/tiger/printast.sml ${COMMON} 
-	mlton src/tc.mlb
-	mv src/tc .
+tc: tc.sml tc.mlb ./tiger/tiger.grm.sml ./tiger/tiger.lex.sml ./tiger/printast.sml ${COMMON} 
+	mlton tc.mlb
+	
 
-mips: ./src/target/mips.sml
-	mlton src/target/mips.sml
+mips: ./target/mips.sml
+	mlton target/mips.sml
 
 test: all
-	./tc src/test/test1.tig pp
-	./tc src/test/test2.tig pp
-	./tc src/test/test3.tig pp
+	./tc test/test1.tig pp
+	./tc test/test2.tig pp
+	./tc test/test3.tig pp
