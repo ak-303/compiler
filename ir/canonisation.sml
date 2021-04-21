@@ -64,11 +64,61 @@ struct
 
     fun basicBlocks(lst: Tree.stm list) = 
     let 
-        fun get_block((T.LABEL l) :: xs, curr_block) = let val appended = curr_block @ [T.JUMP (T.NAME l, [l])]
-                                                       in new_block((T.LABEL l) :: xs, appended)
+        val block_list = ref []
+        val done = Tmp.newlabel()
+        fun get_block((T.LABEL l)::xs,curr_block) = let val appended = curr_block @ [T.JUMP (T.NAME l, [l])]
+                                                    in (new_block((T.LABEL l) :: xs, appended); ())
+                                                    end
+        
+        |   get_block((T.JUMP(x, y)::xs),curr_block) = let val appended = curr_block @ [T.JUMP(x, y)]
+                                                       in (new_block(xs, appended);())
                                                        end
-    in
+                                                       
+        |   get_block((T.CJUMP(a1,a2,a3,a4,a5)::xs),curr_block) = let val appended = curr_block @ [T.CJUMP(a1,a2,a3,a4,a5)]
+                                                                  in (new_block(xs, appended);())
+                                                                  end
+        
+        |   get_block([], curr_block) = let val appended = curr_block @ [T.JUMP(T.NAME done, [done])]
+                                        in (block_list := (!block_list) @ appended)
+                                        end  
+        
+        |   get_block(x::xs, curr_block) = get_block(xs, curr_block@[x])
+        
+        and new_block((T.LABEL l)::xs,last_block) = if List.length(!block_list) = 0
+                                                    then (
+                                                          if List.length(last_block) = 0
+                                                          then (get_block(xs, [(T.LABEL l)]))
+                                                          else (block_list:=(!block_list)@last_block; 
+                                                                get_block(xs, [(T.LABEL l)])) 
+                                                          )
 
+                                                    else (block_list:=(!block_list)@last_block; 
+                                                          get_block(xs, [(T.LABEL l)]))
+
+        |   new_block([], last_block)             = if List.length(!block_list) = 0
+                                                    then (
+                                                          if List.length(last_block) = 0
+                                                          then ()
+                                                          else (block_list:=(!block_list)@last_block;
+                                                              get_block([], [(T.LABEL (Tmp.newlabel()))]))   
+                                                         )
+                                                    else
+                                                    (block_list:=(!block_list)@last_block;
+                                                     get_block([], [(T.LABEL (Tmp.newlabel()))]))
+
+        |   new_block(x::xs, last_block)          = if List.length(!block_list) = 0
+                                                    then (
+                                                          if List.length(last_block) = 0
+                                                          then get_block(x::xs, [(T.LABEL (Tmp.newlabel()))])
+                                                          else (block_list:=(!block_list)@last_block; 
+                                                                get_block(xs, [(T.LABEL (Tmp.newlabel()))]))
+                                                          )
+                                                    
+                                                    else (block_list:=(!block_list)@last_block; 
+                                                          get_block(xs, [(T.LABEL (Tmp.newlabel()))]))
+                                                    
+    in
+        new_block(lst, done)
     end
 
 end
