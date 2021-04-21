@@ -118,7 +118,7 @@ struct
                                                           get_block(xs, [(T.LABEL (Tmp.newlabel()))]))
                                                     
     in
-        new_block(lst, done)
+        (new_block(lst, []); (block_list, done))
     end
 
 end
