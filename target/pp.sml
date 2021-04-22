@@ -78,7 +78,7 @@ fun compile (e0) =
 
         |   exp_inline(A.RecordExp{field,record_type}) = let fun f((name,e)) = (say(name); say(cyan(" : ")); exp_inline(e); ())
                                                 in  (say(record_type); say " "; say(grey("{"));
-                                                    (dolist_inline f field ", "); say "}")
+                                                    (dolist_inline f field ", "); say(grey("}")))
                                                 end
         
         |   exp_inline(A.NegationExp(e)) = ( say(cyan("- ")); exp_inline(e); ())
@@ -194,7 +194,7 @@ fun compile (e0) =
 
         |   exp(A.RecordExp{field,record_type}, d) = let fun f((name,e),d) = (say(name); say(cyan(" : ")); exp_inline(e); ())
                                                 in  (indent d; say(record_type); say " "; say(grey("{"));
-                                                    (dolist 0 f field ", "); say "}")
+                                                    (dolist 0 f field ", "); say(grey("}")))
                                                 end
         
         |   exp(A.NegationExp(e), d) = (indent d; say(cyan("- ")); exp_inline(e); ())
