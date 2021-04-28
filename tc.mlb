@@ -7,4 +7,9 @@ tiger/tiger.grm.sml    (* The parser                                   *)
 tiger/tiger.lex.sml    (* The lexer for the machine                    *)
 tiger/printast.sml
 target/pp.sml
+ir/temp.sig
+ir/temp.sml
+ir/tree.sig
+ir/tree.sml
+ir/canonisation.sml
 tc.sml

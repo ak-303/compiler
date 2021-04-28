@@ -16,7 +16,12 @@ val second_argument = ref ""
 val thisLexer = case CommandLine.arguments() of
 		        []   	 => makeTigerLexer TextIO.stdIn
 		 |     [x] 	 	 => makeFileLexer x
-		 |  (x0::x1::[]) => (second_argument := x1;  makeFileLexer x0)
+		 |  (x0::"--ast"::[]) => (second_argument := "--ast";  makeFileLexer x0)
+		 |	(x0::"--pp"::[])  => (second_argument := "--pp";  makeFileLexer x0)
+		 |	(x0::_::[])       => (TextIO.output(TextIO.stdErr, "Option not supported"); OS.Process.exit OS.Process.failure)  
+		 |	("--ast"::x0::[]) => (second_argument := "--ast";  makeFileLexer x0)
+		 |	("--pp"::x0::[])  => (second_argument := "--pp";  makeFileLexer x0)
+		 |	(_::x0::[])       => (TextIO.output(TextIO.stdErr, "Option not supported"); OS.Process.exit OS.Process.failure)  
 		 |  		_    => (TextIO.output(TextIO.stdErr, "usage: tc file\n"); OS.Process.exit OS.Process.failure)
 
 
@@ -27,8 +32,8 @@ fun print_error (s,i:int,c:int) = TextIO.output(TextIO.stdErr,
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
 
 fun execute (prg, "")    = (PrintAst.print(TextIO.stdOut, prg); TextIO.output(TextIO.stdOut, PP.compile(prg)))
- |  execute (prg, "ast") = PrintAst.print(TextIO.stdOut, prg)
- | 	execute (prg, "pp")  = TextIO.output(TextIO.stdOut, PP.compile(prg))
+ |  execute (prg, "--ast") = PrintAst.print(TextIO.stdOut, prg)
+ | 	execute (prg, "--pp")  = TextIO.output(TextIO.stdOut, PP.compile(prg))
  |	execute (prg, _)     = (TextIO.output(TextIO.stdErr, "undefined: unknown option passed\n"); OS.Process.exit OS.Process.failure)
 
 val _ = execute (program, !second_argument) 

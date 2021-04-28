@@ -13,3 +13,5 @@ Week 5 : Added print option for the AST of tiger. Read README to see how to prin
 Week 6 : Added pretty printer. 
 
 Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated.
+
+Week 8 : Options in the desired format addded.

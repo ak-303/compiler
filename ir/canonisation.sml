@@ -65,7 +65,7 @@ struct
     fun basicBlocks(lst: Tree.stm list) = 
     let 
         val block_list = ref []
-        val done = Tmp.newlabel()
+        val done = Tmp.newLabel()
         fun get_block((T.LABEL l)::xs,curr_block) = let val appended = curr_block @ [T.JUMP (T.NAME l, [l])]
                                                     in (new_block((T.LABEL l) :: xs, appended); ())
                                                     end
@@ -100,22 +100,22 @@ struct
                                                           if List.length(last_block) = 0
                                                           then ()
                                                           else (block_list:=(!block_list)@last_block;
-                                                              get_block([], [(T.LABEL (Tmp.newlabel()))]))   
+                                                              get_block([], [(T.LABEL (Tmp.newLabel()))]))   
                                                          )
                                                     else
                                                     (block_list:=(!block_list)@last_block;
-                                                     get_block([], [(T.LABEL (Tmp.newlabel()))]))
+                                                     get_block([], [(T.LABEL (Tmp.newLabel()))]))
 
         |   new_block(x::xs, last_block)          = if List.length(!block_list) = 0
                                                     then (
                                                           if List.length(last_block) = 0
-                                                          then get_block(x::xs, [(T.LABEL (Tmp.newlabel()))])
+                                                          then get_block(x::xs, [(T.LABEL (Tmp.newLabel()))])
                                                           else (block_list:=(!block_list)@last_block; 
-                                                                get_block(xs, [(T.LABEL (Tmp.newlabel()))]))
+                                                                get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
                                                           )
                                                     
                                                     else (block_list:=(!block_list)@last_block; 
-                                                          get_block(xs, [(T.LABEL (Tmp.newlabel()))]))
+                                                          get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
                                                     
     in
         (new_block(lst, []); (block_list, done))
