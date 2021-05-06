@@ -39,6 +39,8 @@ struct
 
     fun compile(prg) = 
         let 
+        val doneList : Temp.label list ref = ref []
+
         fun oper((e1, opr, e2), env) = let val v1 = unEx(compile_exp(e1, env))
                                            val v2 = unEx(compile_exp(e2, env))
                                         in 
@@ -67,6 +69,62 @@ struct
                                           
                                      in Ex( T.ESEQ( toTree((#1d)), unEx(compile_exp(in_, (#2d))) ) )
                                      end 
+
+        and if_exp(if_, then_, else_, env) = let val t   = Temp.newLabel()
+                                                 val f   = Temp.newLabel()
+                                                 val join = Temp.newLabel()
+                                              in 
+                                              case else_ of 
+                                                NONE => Nx(toTree([(unCx(compile_exp(if_, env)))(t, f),
+                                                                   T.LABEL(t),
+                                                                   unNx(compile_exp(then_, env)),
+                                                                   T.JUMP(T.NAME(join), [join]),
+                                                                   T.LABEL(f),
+                                                                   T.LABEL(join)
+                                                                  ])
+                                                          )
+                                              | (SOME x) => let val tmp = Temp.newTemp()
+                                                            in 
+                                                            Ex(T.ESEQ(toTree([(unCx(compile_exp(if_, env)))(t, f),
+                                                                              T.LABEL(t),
+                                                                              T.MOVE(T.TEMP tmp, unEx(compile_exp(then_, env))),
+                                                                              T.JUMP(T.NAME(join), [join]),
+                                                                              T.LABEL(f), 
+                                                                              T.MOVE(T.TEMP tmp, unEx(compile_exp(x, env))),
+                                                                              T.LABEL(join)
+                                                                            ]), 
+                                                                      T.TEMP tmp)
+                                                              )
+                                                        end 
+                                             end
+
+        and while_exp(while_, do_, done, env) = let val t = Temp.newLabel()
+                                                in 
+                                                Nx(toTree([(unCx(compile_exp(while_, env)))(t, done),
+                                                           T.LABEL(t),
+                                                           unNx(compile_exp(do_, env)),
+                                                           (unCx(compile_exp(while_, env))(t, done)),
+                                                           T.LABEL(done) 
+                                                          ])
+                                                  )
+                                                end
+
+        and for_exp(var, from, to_, do_, done, env) = let val e1 = unEx(compile_exp(from, env))
+                                                          val e2 = unEx(compile_exp(to_, env))
+                                                          val t  = Temp.newLabel()
+                                                          val vtmp = Temp.newTemp()
+                                                          val n_env = E.insert(env, var, vtmp)
+                                                      in 
+                                                      Nx(toTree([ T.MOVE(T.TEMP vtmp, e1),
+                                                                  T.CJUMP(T.LT, T.TEMP vtmp, e2, t, done),
+                                                                  T.LABEL(t),
+                                                                  unNx(compile_exp(do_, n_env)),
+                                                                  T.MOVE(T.TEMP vtmp, T.BINOP(T.PLUS, T.TEMP vtmp, T.CONST 1)),
+                                                                  T.CJUMP(T.LT, T.TEMP vtmp, e2, t, done),
+                                                                  T.LABEL(done)
+                                                                ])
+                                                        )
+                                                      end
 
         and compile_exp(e, env) = 
         case e of 
@@ -103,16 +161,37 @@ struct
                                   Ex( T.ESEQ(toTree((#1d)), List.nth((#2d), 0)) )
                                 end
 
-        | (A.AssignExp(lval, e)) => let val vl = unEx(compile_lvalue(lval, env)) 
-                                        val ve = unEx(compile_exp(e, env))
+        | (A.AssignExp(lval, e)) => let val ve = unEx(compile_exp(e, env))
+                                        val vl = unEx(compile_lvalue(lval, env))   
                                     in 
                                         Ex( T.ESEQ(T.MOVE(vl, ve), T.CONST 0) )
                                     end
 
-        | A.IfExp _       => (print("If not supported.\n"); raise Unsupported "IfExp")
-        | A.WhileExp _    => (print("While not supported.\n"); raise Unsupported "While")
-        | A.ForExp _      => (print("For not supported.\n"); raise Unsupported "For")
-        | A.BreakExp      => (print("Break not supported"); raise Unsupported "Break")
+        | A.IfExp{if_=if_,then_=then_,else_=else_} => if_exp(if_, then_, else_, env)
+
+        | A.WhileExp{while_=while_, do_=do_} => let val done = Temp.newLabel()
+                                                    val keep = !doneList
+                                                    val emp  = (doneList := (done :: (!doneList)))
+                                                    val v    = while_exp(while_, do_, done, env)
+                                                    val emp  = (doneList := keep)
+                                                in v
+                                                end 
+                                                
+        | A.ForExp{var=var,from=from,to_=to_,do_=do_} => let val done = Temp.newLabel()
+                                                             val keep = !doneList
+                                                             val emp  = (doneList := (done :: (!doneList)))
+                                                             val v    = for_exp(var, from, to_, do_, done, env)
+                                                             val emp  = (doneList := keep)
+                                                         in v
+                                                         end 
+
+        | A.BreakExp      => let val isEmpty = List.null(!doneList)
+                             in 
+                              case isEmpty of
+                                true  => (print("Using break outside loop.\n"); raise Error "Break")
+                              | false => Nx(T.JUMP(T.NAME(List.nth(!doneList, 0)), [List.nth(!doneList, 0)]))
+                             end
+
         | (A.LetExp{declarations=decs, in_=in_}) =>  let_exp(decs, in_, env)
 
         and compile_lvalue(e, env) = 
