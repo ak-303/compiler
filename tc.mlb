@@ -1,4 +1,5 @@
 $(SML_LIB)/basis/basis.mlb
+$(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
 
 tiger/ast.sml         (* the syntax                                   *)
@@ -11,5 +12,9 @@ ir/temp.sig
 ir/temp.sml
 ir/tree.sig
 ir/tree.sml
+ir/env.sig
+ir/env.sml
+ir/translate.sml
+ir/printTree.sml 
 ir/canonisation.sml
 tc.sml

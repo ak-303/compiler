@@ -37,7 +37,7 @@ struct
      |  unCx (Nx s) = (print("unCx on Nx not allowed.\n"); raise Error "unCx on Nx.\n")
 
 
-    and compile (e, env) = 
+    fun compile(prg) = 
         let 
         fun oper((e1, opr, e2), env) = let val v1 = unEx(compile_exp(e1, env))
                                            val v2 = unEx(compile_exp(e2, env))
@@ -58,32 +58,62 @@ struct
                                         | A.GTEq  => Cx(fn(t,f)=>T.CJUMP(T.GTE, v1, v2, t, f))
                                         | A.LTEq  => Cx(fn(t,f)=>T.CJUMP(T.LTE, v1, v2, t, f))
                                         end
+        
+        and let_exp(decs, in_, env) = let fun get_decs([],   stms,n_env) = (stms, n_env)
+                                          |   get_decs((x::xs),stms,n_env) = let val t = compile_dec(x, n_env)
+                                                                          in get_decs(xs, stms@[(#1t)], (#2t))
+                                                                          end
+                                          val d = get_decs(decs, [], env)
+                                          
+                                     in Ex( T.ESEQ( toTree((#1d)), unEx(compile_exp(in_, (#2d))) ) )
+                                     end 
 
         and compile_exp(e, env) = 
         case e of 
-          (A.IntExp i)  => Ex(T.CONST i)
+          (A.IntExp(i))  => Ex(T.CONST i)
         | A.NilExp      => Ex(T.CONST 0)
+
         | A.StringExp _ => (print("String not supported.\n"); raise Unsupported "String")
 
         | A.ArrayExp _  => (print("Arrays not supported.\n"); raise Unsupported "Array")
+
         | A.RecordExp _ => (print("Record not supported.\n"); raise Unsupported "Record")
 
         | A.ObjectExp _ => (print("Classes not supported.\n"); raise Unsupported "Object")
+
         | (A.LvalueExp lval) => compile_lvalue(lval, env)
 
         | A.FunCallExp _ => (print("Function not supported.\n"); raise Unsupported "Function")
+
         | A.MethodCallExp _ => (print("Classes not supported.\n"); raise Unsupported "Method")
 
-        | A.NegationExp _ => (print("Negation not supported.\n"); raise Unsupported "Negation")
-        | A.OpExp(e1, opr, e2) => oper((e1, opr, e2), env)
-        | A.SequenceExp _ => (print("SeqExp not supported.\n"); raise Unsupported "SeqExp")
+        | (A.NegationExp(e)) => oper( (A.IntExp(0), A.Minus, e), env )
 
-        | A.AssignExp _   => (print("Assign not supported.\n"); raise Unsupported "Assign") 
+        | (A.OpExp(e1, opr, e2)) => oper((e1, opr, e2), env)
+
+        | (A.SequenceExp(l)) => let fun do_seq([], lst) = (lst, [])
+                                      | do_seq([x], lst) = let val t = unEx(compile_exp(x, env))
+                                                            in (lst, [t])
+                                                            end
+                                      | do_seq((x::xs), lst) = let val t = unNx(compile_exp(x, env))
+                                                                in do_seq(xs, lst@[t])
+                                                                end
+                                    val d = do_seq(l, [])
+                                in 
+                                  Ex( T.ESEQ(toTree((#1d)), List.nth((#2d), 0)) )
+                                end
+
+        | (A.AssignExp(lval, e)) => let val vl = unEx(compile_lvalue(lval, env)) 
+                                        val ve = unEx(compile_exp(e, env))
+                                    in 
+                                        Ex( T.ESEQ(T.MOVE(vl, ve), T.CONST 0) )
+                                    end
+
         | A.IfExp _       => (print("If not supported.\n"); raise Unsupported "IfExp")
         | A.WhileExp _    => (print("While not supported.\n"); raise Unsupported "While")
         | A.ForExp _      => (print("For not supported.\n"); raise Unsupported "For")
         | A.BreakExp      => (print("Break not supported"); raise Unsupported "Break")
-        | A.LetExp _      => (print("Let not supported.\n"); raise Unsupported "Let") 
+        | (A.LetExp{declarations=decs, in_=in_}) =>  let_exp(decs, in_, env)
 
         and compile_lvalue(e, env) = 
         case e of 
@@ -93,10 +123,24 @@ struct
                                                   raise Error "Undefined") 
                                    | SOME(x)   => Ex(T.TEMP(x))
                                 end
+
         | (A.Lvalue_array _) => (print("Array not supported.\n"); raise Unsupported "Array")
         | (A.Lvalue_field _) => (print("Record not supported.\n"); raise Unsupported "Record")
 
+        and compile_dec(e, env) = 
+        case e of 
+          (A.VarDec{var_id, var_type, value}) => let val t = Temp.newTemp()
+                                                   val v = unEx(compile_exp(value, env))
+                                                   val env = E.insert(env, var_id, t)
+                                                   in 
+                                                    (T.MOVE(T.TEMP t, v), env )
+                                                   end
+
+                                                
+          | _ => (print("Not Implemented"); raise Unsupported "Declaration")
+
+        and compile_prg(A.Program (e)) = compile_exp(e, E.generate_new())
         in 
-        print("work in progress")
+        unNx(compile_prg(prg))
         end
 end
