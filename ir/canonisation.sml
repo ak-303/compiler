@@ -2,6 +2,11 @@ structure Canonize =
 struct
     structure T = Tree
     structure Tmp = Temp 
+    
+    fun commute(T.EXP(T.CONST _), _) = true
+	| commute(_, T.CONST _) = true
+    | commute(_, T.NAME _) = true
+	| commute _ = false
 
     fun linearize(statement) = 
     let 
@@ -10,11 +15,16 @@ struct
                                                 in reorder(T.ESEQ(T.MOVE(T.TEMP(t), T.CALL(f, arg)), T.TEMP(t)) :: exprs)
                                                 end
 
-        |                      (e1 :: exprs)  => let val e1_out = do_exp e1
-                                                  val exprs_out = reorder exprs 
-                                                          val t = Tmp.newTemp()
-                                                in (T.SEQ(T.SEQ(#1(e1_out), T.MOVE(T.TEMP t, #2(e1_out))), #1(exprs_out)), (T.TEMP t :: #2(exprs_out)))
-                                                end
+        |                      (e1 :: exprs)  => let val e1_out    = do_exp e1
+                                                     val exprs_out = reorder exprs 
+                                                  in if commute(#1(exprs_out), #2(e1_out)) 
+                                                     then (T.SEQ(#1(e1_out), #1(exprs_out)), (#2(e1_out) :: #2(exprs_out))) 
+                                                     else let 
+                                                            val t = Tmp.newTemp()
+                                                            in (T.SEQ(T.SEQ(#1(e1_out), T.MOVE(T.TEMP t, #2(e1_out))), #1(exprs_out)), (T.TEMP t :: #2(exprs_out)))
+                                                            end
+                                                  end
+
 
         |                       ([])          => (T.EXP(T.CONST 0), [])
 
@@ -54,9 +64,14 @@ struct
 
         fun linear(T.SEQ (stm1, stm2), out) = linear(stm1, linear(stm2, out))
         |                 linear(stm1, out) = stm1 :: out 
+
+        fun peephole ([], lst) = lst
+        |   peephole ((x::xs), lst) = case x of 
+                                        T.EXP(T.CONST 0) => peephole(xs, lst)
+                                     |  z as _           => peephole(xs, lst@[z])
     in
 
-        linear(do_stm statement, [])
+        peephole(linear(do_stm statement, []), [])
 
     end 
 
@@ -118,7 +133,7 @@ struct
                                                           get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
                                                     
     in
-        (new_block(lst, []); (block_list, done))
+        (new_block(lst, []); (!block_list, done))
     end
 
 end

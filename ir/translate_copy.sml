@@ -12,8 +12,34 @@ struct
                 |  Nx of Tree.stm
                 |  Cx of Temp.label * Temp.label -> Tree.stm
     
+    fun checkType(A.NilExp) = 0
+      | checkType(A.IntExp _) = 1
+      | checkType(A.StringExp _) = (print("String not supported.\n"); raise Unsupported "String")
+      | checkType(A.ArrayExp _)  = (print("Array not supported.\n"); raise Unsupported "Array") 
+      | checkType(A.RecordExp _) = (print("Record not supported.\n"); raise Unsupported "Record")
+      | checkType(A.ObjectExp _) = (print("Class not supported.\n"); raise Unsupported "Class")
+      | checkType(A.LvalueExp _) = 1
+      | checkType(A.FunCallExp _) = 1
+      | checkType(A.MethodCallExp _) = (print("Class not supported.\n"); raise Unsupported "Class")
+      | checkType(A.SequenceExp lst) = if List.length(lst) = 0 then 0 else checkType(List.nth(lst, List.length(lst)-1))
+      | checkType(A.NegationExp _)   = 1
+      | checkType(A.OpExp _)         = 1
+      | checkType(A.AssignExp _)     = 0
+      | checkType(A.IfExp{if_=if_,then_=then_,else_=else_}) = let in 
+                                                              case else_ of 
+                                                                NONE => 0
+                                                              | SOME x => (
+                                                                            if checkType(then_) <> checkType(x) 
+                                                                            then (print("then else type don't match.\n"); raise Error "Type");
+                                                                            checkType(x)
+                                                                          )
+                                                              end
+      | checkType(A.WhileExp _)      = 0
+      | checkType(A.ForExp _)        = 0
+      | checkType(A.LetExp{declarations=decs, in_=in_}) = checkType(in_) 
+      | checkType(A.BreakExp)        = 0
+   
     fun toTree []      = T.EXP(T.CONST 0)
-     |  toTree [s]     = s
      |  toTree (s::sr) = T.SEQ(s, toTree(sr))
 
     fun unEx (Ex e) = e 
@@ -74,19 +100,19 @@ struct
         and if_exp(if_, then_, else_, env) = let val t   = Temp.newLabel()
                                                  val f   = Temp.newLabel()
                                                  val join = Temp.newLabel()
-                                                 val tmp  = Temp.newTemp()
                                               in 
                                               case else_ of 
-                                                NONE => Ex(T.ESEQ(toTree([(unCx(compile_exp(if_, env)))(t, f),
+                                                NONE => Nx(toTree([(unCx(compile_exp(if_, env)))(t, f),
                                                                    T.LABEL(t),
-                                                                   T.MOVE(T.TEMP tmp, unEx(compile_exp(then_, env))),
+                                                                   unNx(compile_exp(then_, env)),
                                                                    T.JUMP(T.NAME(join), [join]),
                                                                    T.LABEL(f),
-                                                                   T.MOVE(T.TEMP tmp, T.CONST 0),
                                                                    T.LABEL(join)
-                                                                  ]), T.TEMP tmp)
+                                                                  ])
                                                           )
-                                              | (SOME x) => Ex(T.ESEQ(toTree([(unCx(compile_exp(if_, env)))(t, f),
+                                              | (SOME x) => let val tmp = Temp.newTemp()
+                                                            in 
+                                                            Ex(T.ESEQ(toTree([(unCx(compile_exp(if_, env)))(t, f),
                                                                               T.LABEL(t),
                                                                               T.MOVE(T.TEMP tmp, unEx(compile_exp(then_, env))),
                                                                               T.JUMP(T.NAME(join), [join]),
@@ -96,41 +122,34 @@ struct
                                                                             ]), 
                                                                       T.TEMP tmp)
                                                               )
-                                                      
+                                                        end 
                                              end
 
         and while_exp(while_, do_, done, env) = let val t = Temp.newLabel()
-                                                    val tmp = Temp.newTemp()
                                                 in 
-                                                Ex(T.ESEQ(toTree([
-                                                            T.LABEL(t),
-                                                            (unCx(compile_exp(while_, env)))(t, done),
-                                                            unNx(compile_exp(do_, env)),
-                                                            T.JUMP(T.NAME(t), [t]),  
-                                                            T.LABEL(done), 
-                                                            T.MOVE(T.TEMP tmp, T.CONST 0)
-                                                          ]), T.TEMP tmp)
+                                                Nx(toTree([(unCx(compile_exp(while_, env)))(t, done),
+                                                           T.LABEL(t),
+                                                           unNx(compile_exp(do_, env)),
+                                                           (unCx(compile_exp(while_, env))(t, done)),
+                                                           T.LABEL(done) 
+                                                          ])
                                                   )
                                                 end
 
         and for_exp(var, from, to_, do_, done, env) = let val e1 = unEx(compile_exp(from, env))
                                                           val e2 = unEx(compile_exp(to_, env))
                                                           val t  = Temp.newLabel()
-                                                          val t2 = Temp.newLabel()
                                                           val vtmp = Temp.newTemp()
                                                           val n_env = E.insert(env, var, vtmp)
-                                                          val tmp = Temp.newTemp()
                                                       in 
-                                                      Ex(T.ESEQ(toTree([ T.MOVE(T.TEMP vtmp, e1),
+                                                      Nx(toTree([ T.MOVE(T.TEMP vtmp, e1),
+                                                                  T.CJUMP(T.LT, T.TEMP vtmp, e2, t, done),
                                                                   T.LABEL(t),
-                                                                  T.CJUMP(T.LT, T.TEMP vtmp, e2, t2, done),
-                                                                  T.LABEL(t2),
                                                                   unNx(compile_exp(do_, n_env)),
                                                                   T.MOVE(T.TEMP vtmp, T.BINOP(T.PLUS, T.TEMP vtmp, T.CONST 1)),
-                                                                  T.JUMP(T.NAME(t), [t]),
-                                                                  T.LABEL(done),
-                                                                  T.MOVE(T.TEMP tmp, T.CONST 0)
-                                                                ]), T.TEMP tmp)
+                                                                  T.CJUMP(T.LT, T.TEMP vtmp, e2, t, done),
+                                                                  T.LABEL(done)
+                                                                ])
                                                         )
                                                       end
 
@@ -153,25 +172,36 @@ struct
 
         | A.MethodCallExp _ => (print("Classes not supported.\n"); raise Unsupported "Method")
 
-        | (A.NegationExp(e)) => oper( (A.IntExp(0), A.Minus, e), env )
+        | (A.NegationExp(e)) => (
+                                  if checkType(e) = 0 then (print("Negation on valueless exp\n"); raise Error "Type");
+                                  oper( (A.IntExp(0), A.Minus, e), env )
+                                )
 
-        | (A.OpExp(e1, opr, e2)) => oper((e1, opr, e2), env)
+        | (A.OpExp(e1, opr, e2)) => (
+                                      if checkType(e1) = 0 then (print("Operation on valueless exp\n"); raise Error "Type");
+                                      if checkType(e2) = 0 then (print("Operation on valueless exp\n"); raise Error "Type"); 
+                                      oper((e1, opr, e2), env)
+                                    )
 
-        | (A.SequenceExp(l)) => let fun do_seq([]) = Ex(T.CONST 0)
-                                      | do_seq([x]) = compile_exp(x, env)
-                                      | do_seq(x::xs) = let val t = unEx(do_seq(xs))
-                                                            val z = unNx(compile_exp(x, env))
-                                                                in Ex(T.ESEQ(z, t))
+        | (A.SequenceExp(l)) => let fun do_seq([], lst) = (lst, [])
+                                      | do_seq([x], lst) = let val t = unEx(compile_exp(x, env))
+                                                            in (lst, [t])
+                                                            end
+                                      | do_seq((x::xs), lst) = let val t = unNx(compile_exp(x, env))
+                                                                in do_seq(xs, lst@[t])
                                                                 end
+                                    val d = do_seq(l, [])
                                 in 
-                                  do_seq(l)
+                                  Ex( T.ESEQ(toTree((#1d)), List.nth((#2d), 0)) )
                                 end
-                               
 
         | (A.AssignExp(lval, e)) => let val ve = unEx(compile_exp(e, env))
                                         val vl = unEx(compile_lvalue(lval, env))   
                                     in 
-                                        Ex( T.ESEQ(T.MOVE(vl, ve), T.CONST 0) )
+                                        (
+                                          if checkType(e)=0 then (print("Assigning a valueless exp\n"); raise Error "Type");
+                                          Ex( T.ESEQ(T.MOVE(vl, ve), T.CONST 0) )
+                                        )
                                     end
 
         | A.IfExp{if_=if_,then_=then_,else_=else_} => if_exp(if_, then_, else_, env)

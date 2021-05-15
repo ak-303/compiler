@@ -1,17 +1,22 @@
 structure PrintIRTree : sig 
-    val printTree : TextIO.outstream * Tree.stm -> unit
+    val printTree : TextIO.outstream * Tree.stm * int -> unit
+    val printLinearize : TextIO.outstream * Tree.stm list -> unit 
+    val printBlocks : TextIO.outstream * Tree.stm list list -> unit 
 end =
 struct 
     structure T = Tree
 
-    fun printTree(outstream, t0) =
+    fun printTree(outstream, t0, flag) =
     let 
 
     fun say s = TextIO.output(outstream, s)
-    fun sayln s = (say s; say "\n") 
+    fun sayln s = if flag = 1 then (say s; say "\n") 
+                  else (say s; say " ")
+                 
 
     fun indent 0 = ()
-     |  indent n = (say "    "; indent(n-1))
+     |  indent n = if flag = 1 then (say "    "; indent(n-1))
+                   else indent(n-1)
     
     fun bopname T.PLUS    = "PLUS"
     |   bopname T.MINUS   = "MINUS"
@@ -59,7 +64,7 @@ struct
                                             |   f((x::xs)) = (say(Int.toString x); say", ";
                                                                 f(xs))
                                         in (indent d; sayln "JUMP("; expr(e, d+1); 
-                                            say ", "; say "("; f(lst); say ")")
+                                            say ", "; say "("; f(lst); say ")"; say ")")
                                         end 
     |   stm(T.SEQ(s1, s2), d)         = (indent d; sayln "SEQ("; stm(s1, d+1); sayln ",";
                                         stm(s2, d+1); say ")" )
@@ -72,4 +77,13 @@ struct
         stm(t0, 0); sayln ""; TextIO.flushOut outstream
     end
 
+    fun printLinearize(outstream, [])      = ()
+     |  printLinearize(outstream, (x::xs)) = (printTree(outstream, x, 0); 
+                                              TextIO.output(outstream, "\n"); 
+                                              printLinearize(outstream, xs))
+
+    fun printBlocks(outstream, []) = ()
+     |  printBlocks(outstream, (x::xs)) = (printLinearize(outstream, x); 
+                                           TextIO.output(outstream, "\n\n"); 
+                                           printBlocks(outstream, xs))
 end

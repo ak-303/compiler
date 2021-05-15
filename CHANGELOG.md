@@ -12,6 +12,11 @@ Week 5 : Added print option for the AST of tiger. Read README to see how to prin
 
 Week 6 : Added pretty printer. 
 
-Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated.
+Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated. 
+Date Apr 21
 
-Week 8 : Options in the desired format addded.
+Week 8 : Options in the desired format addded and basic blocks in canonisation added. Date Apr 28
+
+Week 9 : Added partial translate and environment. Date May 6.
+
+Week 10 : Rectified many errors. Made every expression of type integer. Linearize output printing. Some problem with basic blocks will be rectified and added. Date May 15.
