@@ -20,3 +20,5 @@ Week 8 : Options in the desired format addded and basic blocks in canonisation a
 Week 9 : Added partial translate and environment. Date May 6.
 
 Week 10 : Rectified many errors. Made every expression of type integer. Linearize output printing. Some problem with basic blocks will be rectified and added. Date May 15.
+
+Added support for Functions. --bb option for basic blocks (but there is some problem with it.) Date May 20.

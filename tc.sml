@@ -20,12 +20,12 @@ val thisLexer = case CommandLine.arguments() of
 		 |	(x0::"--pp"::[])  => (second_argument := "--pp";  makeFileLexer x0)
 		 |	(x0::"--ir"::[])  => (second_argument := "--ir"; makeFileLexer x0)
 		 |  (x0::"--can"::[]) => (second_argument := "--can"; makeFileLexer x0)
-		 (* |	(x0::"--bb"::[]) => (second_argument := "--bb"; makeFileLexer x0) *)
+		 |	(x0::"--bb"::[]) => (second_argument := "--bb"; makeFileLexer x0)
 		 |	("--ast"::x0::[]) => (second_argument := "--ast";  makeFileLexer x0)
 		 |	("--pp"::x0::[])  => (second_argument := "--pp";  makeFileLexer x0)
 		 |	("--ir"::x0::[])  => (second_argument := "--ir"; makeFileLexer x0)
 		 |	("--can"::x0::[]) => (second_argument := "--can"; makeFileLexer x0)
-		 (* |	("--bb"::x0::[])  => (second_argument := "--bb"; makeFileLexer x0) *)
+		 |	("--bb"::x0::[])  => (second_argument := "--bb"; makeFileLexer x0)
 		 |  		_    => (TextIO.output(TextIO.stdErr, "usage: tc file\n"); OS.Process.exit OS.Process.failure)
 
 
@@ -40,7 +40,7 @@ fun execute (prg, "")    = (PrintAst.print(TextIO.stdOut, prg); TextIO.output(Te
  | 	execute (prg, "--pp")  = TextIO.output(TextIO.stdOut, PP.compile(prg))
  |	execute (prg, "--ir")  = PrintIRTree.printTree(TextIO.stdOut, Translate.compile(prg), 1) 
  |  execute (prg, "--can") = PrintIRTree.printLinearize(TextIO.stdOut, Canonize.linearize(Translate.compile(prg)))
- (* |  execute (prg, "--bb")  = PrintIRTree.printBlocks(TextIO.stdOut, #1(Canonize.basicBlocks(Canonize.linearize(Translate.compile(prg))))) *)
+ |  execute (prg, "--bb")  = PrintIRTree.printBlocks(TextIO.stdOut, #1(Canonize.basicBlocks(Canonize.linearize(Translate.compile(prg)))))
  |	execute (prg, _)     = (TextIO.output(TextIO.stdErr, "undefined: unknown option passed\n"); OS.Process.exit OS.Process.failure)
 
 val _ = execute (program, !second_argument) 

@@ -42,14 +42,21 @@ struct
 
     fun expr(T.CONST(x), d) = (indent d; say "CONST "; say(Int.toString x))
     |   expr(T.NAME(x), d)  = (indent d; say "NAME "; say(Int.toString x))
-    |   expr(T.TEMP(x), d)  = (indent d; say "TEMP "; say(Int.toString x))
+    |   expr(T.TEMP(x), d)  = (indent d; 
+                               case x of 
+                                   0 => say "ra"
+                                |  1 => say "sp"
+                                |  2 => say "ret"
+                                |  3 => say "fp"
+                                |  z as _ => (say "TEMP "; say(Int.toString(z)))
+                            )
 
     |   expr(T.BINOP(opr, e1, e2), d) = (indent d; say "BINOP("; say(bopname(opr)); sayln ", "; 
                                         expr(e1, d+1); sayln", "; expr(e2, d+1); say ")")
 
     |   expr(T.MEM(e), d)             = (indent d; sayln "MEM("; expr(e, d+1); say ")")
     |   expr(T.CALL(e, lst), d)       = let fun f([], d)      = ()
-                                            |   f((x::xs), d) = (indent d; expr(e, d); 
+                                            |   f((x::xs), d) = (indent d; expr(x, d); 
                                                                 sayln ","; f(xs, d))
                                         in (indent d; sayln "CALL("; expr(e, d+1); 
                                             sayln ","; f(lst, d+1); say ")")

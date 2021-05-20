@@ -94,42 +94,43 @@ struct
                                                                   end
         
         |   get_block([], curr_block) = let val appended = curr_block @ [T.JUMP(T.NAME done, [done])]
-                                        in (block_list := (!block_list) @ appended)
+                                        in (block_list := (!block_list) @ [appended])
                                         end  
         
+        |   get_block([x], curr_block) = get_block([], (curr_block@[x]))
         |   get_block(x::xs, curr_block) = get_block(xs, curr_block@[x])
         
         and new_block((T.LABEL l)::xs,last_block) = if List.length(!block_list) = 0
                                                     then (
                                                           if List.length(last_block) = 0
                                                           then (get_block(xs, [(T.LABEL l)]))
-                                                          else (block_list:=(!block_list)@last_block; 
+                                                          else (block_list:=(!block_list)@[last_block]; 
                                                                 get_block(xs, [(T.LABEL l)])) 
                                                           )
 
-                                                    else (block_list:=(!block_list)@last_block; 
+                                                    else (block_list:=(!block_list)@[last_block]; 
                                                           get_block(xs, [(T.LABEL l)]))
 
         |   new_block([], last_block)             = if List.length(!block_list) = 0
                                                     then (
                                                           if List.length(last_block) = 0
                                                           then ()
-                                                          else (block_list:=(!block_list)@last_block;
+                                                          else (block_list:=(!block_list)@[last_block];
                                                               get_block([], [(T.LABEL (Tmp.newLabel()))]))   
                                                          )
                                                     else
-                                                    (block_list:=(!block_list)@last_block;
+                                                    (block_list:=(!block_list)@[last_block];
                                                      get_block([], [(T.LABEL (Tmp.newLabel()))]))
 
         |   new_block(x::xs, last_block)          = if List.length(!block_list) = 0
                                                     then (
                                                           if List.length(last_block) = 0
                                                           then get_block(x::xs, [(T.LABEL (Tmp.newLabel()))])
-                                                          else (block_list:=(!block_list)@last_block; 
+                                                          else (block_list:=(!block_list)@[last_block]; 
                                                                 get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
                                                           )
                                                     
-                                                    else (block_list:=(!block_list)@last_block; 
+                                                    else (block_list:=(!block_list)@[last_block]; 
                                                           get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
                                                     
     in

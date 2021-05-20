@@ -1,11 +1,11 @@
-structure Temp =
+structure Temp : TEMP =
 struct
 
     type label = int
     type temp  = int
 
     val nextLabel : label ref = ref 0
-    val nextTemp  : temp ref  = ref 0
+    val nextTemp  : temp ref  = ref 4
 
     fun newLabel () = (nextLabel := (!nextLabel) + 1; !nextLabel)
     fun newTemp  () = (nextTemp  := (!nextTemp)  + 1; !nextTemp )
