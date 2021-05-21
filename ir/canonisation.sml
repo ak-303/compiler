@@ -127,11 +127,11 @@ struct
                                                           if List.length(last_block) = 0
                                                           then get_block(x::xs, [(T.LABEL (Tmp.newLabel()))])
                                                           else (block_list:=(!block_list)@[last_block]; 
-                                                                get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
+                                                                get_block(x::xs, [(T.LABEL (Tmp.newLabel()))]))
                                                           )
                                                     
                                                     else (block_list:=(!block_list)@[last_block]; 
-                                                          get_block(xs, [(T.LABEL (Tmp.newLabel()))]))
+                                                          get_block(x::xs, [(T.LABEL (Tmp.newLabel()))]))
                                                     
     in
         (new_block(lst, []); (!block_list, done))
