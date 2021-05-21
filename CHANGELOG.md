@@ -13,11 +13,15 @@ Hash: bdb0531b0c0ac4d77f3eab8bf37d2440bc6b3f9b
 - I request you to evaluate this lab in two parts because I wasn't able to complete within deadline. You can choose the best out of two for final grade. 
 
 Option 1: This one contains all implementations except support for functions. To print IR Tree use '--ir' option and to print Canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). 
+
 Date: 15/05/2021
+
 Hash: 9a8162cbdedf979ffc5ef37adafa987d12111119
 
 Option 2: This one contains support for functions too. To print IR Tree use '--ir' option and to print canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). However, if you want basic blocks output use '--bb' option, there is some problem with it, it works fine but for some codes the output won't be completely correct, I will rectify those later since it is not part of grading and is extra. The bugless code for '--bb' part has a commit of one day later than deadline, but I don't want to loose marks for late submission, that's why not putting it here. 
+
 Date: 20/05/2021
+
 Hash: 53eed31821dd268c83095fed2bb566a3752d6141
 
 
@@ -44,5 +48,4 @@ Date Apr 21
 - Week 9 : Added partial translate and environment. Date May 6.
 
 - Week 10 : Rectified many errors. Made every expression of type integer. Linearize output printing. Some problem with basic blocks will be rectified and added. Date May 15.
-
 Added support for Functions. --bb option for basic blocks (but there is some problem with it.) Date May 20.
