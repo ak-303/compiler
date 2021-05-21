@@ -18,7 +18,7 @@ Date: 15/05/2021
 
 Hash: 9a8162cbdedf979ffc5ef37adafa987d12111119
 
-Option 2: This one contains support for functions too. To print IR Tree use '--ir' option and to print canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). However, if you want basic blocks output use '--bb' option, there is some problem with it, it works fine but for some codes the output won't be completely correct, I will rectify those later since it is not part of grading and is extra. The bugless code for '--bb' part has a commit of one day later than deadline, but I don't want to loose marks for late submission, that's why not putting it here. 
+Option 2: This one contains support for functions too. To print IR Tree use '--ir' option and to print canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). However, if you want basic blocks output use '--bb' option, there is some problem with it, it works fine but for some codes the output won't be completely correct, I will rectify those later since it is not part of grading and is extra. The bugless code for '--bb' part has a commit of one day later than deadline, but I don't want to loose marks for late submission, that's why not putting it here. Look in README for more info. 
 
 Date: 20/05/2021
 
