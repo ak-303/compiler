@@ -16,33 +16,33 @@ Option 1: This one contains all implementations except support for functions. To
 Date: 15/05/2021
 Hash: 9a8162cbdedf979ffc5ef37adafa987d12111119
 
-Option 2: This one contains support for functions too. To print IR Tree use '--ir' option and to print canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). However, if you want basic blocks output use '--bb' option, there is some problem with it, it works fine but for some codes the output won't be completely correct, I will rectify those later since it is not part of grading and is extra. 
+Option 2: This one contains support for functions too. To print IR Tree use '--ir' option and to print canonization output use '--can' option. The canonization here only does Linearization (Chapter 7). However, if you want basic blocks output use '--bb' option, there is some problem with it, it works fine but for some codes the output won't be completely correct, I will rectify those later since it is not part of grading and is extra. The bugless code for '--bb' part has a commit of one day later than deadline, but I don't want to loose marks for late submission, that's why not putting it here. 
 Date: 20/05/2021
 Hash: 53eed31821dd268c83095fed2bb566a3752d6141
 
 
 
-WEEKLY CHANGES WILL BE ADDED HERE
+# WEEKLY CHANGES WILL BE ADDED HERE
 
-Week 1 : Makefile, src folder added
+- Week 1 : Makefile, src folder added
 
-Week 2 : reverse-polish with integer division and brackets support added
+- Week 2 : reverse-polish with integer division and brackets support added
 
-Week 3 : Initial ASTs for tiger and MIPS added. Some changes might be required.  
+- Week 3 : Initial ASTs for tiger and MIPS added. Some changes might be required.  
 
-Week 4 : grm and lex files for tiger added. Now AST can be generated.  
+- Week 4 : grm and lex files for tiger added. Now AST can be generated.  
 
-Week 5 : Added print option for the AST of tiger. Read README to see how to print.
+- Week 5 : Added print option for the AST of tiger. Read README to see how to print.
 
-Week 6 : Added pretty printer. 
+- Week 6 : Added pretty printer. 
 
-Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated. 
+- Week 7 : Added IR Tree. Canonisation started not complete. Directory structure updated. 
 Date Apr 21
 
-Week 8 : Options in the desired format addded and basic blocks in canonisation added. Date Apr 28
+- Week 8 : Options in the desired format addded and basic blocks in canonisation added. Date Apr 28
 
-Week 9 : Added partial translate and environment. Date May 6.
+- Week 9 : Added partial translate and environment. Date May 6.
 
-Week 10 : Rectified many errors. Made every expression of type integer. Linearize output printing. Some problem with basic blocks will be rectified and added. Date May 15.
+- Week 10 : Rectified many errors. Made every expression of type integer. Linearize output printing. Some problem with basic blocks will be rectified and added. Date May 15.
 
 Added support for Functions. --bb option for basic blocks (but there is some problem with it.) Date May 20.
